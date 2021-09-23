@@ -1,65 +1,71 @@
+import { ShoppingCartRepository } from './../shopping-cart/shopping-cart.repository';
+import { JwtPayload } from './jwt-payload.interface';
+import { SignInDto } from './dto/sign-in-creds.dto';
+import { User } from './user.entity';
+import { UsersRepository } from './users.repository';
 import { GetUserFilterDto } from './dto/get-user-filter.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './user.model';
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { v4 as uuid } from 'uuid';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DeleteResult } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [
-    {
-      id: 'b3119fcc-9167-4d2c-ab22-831ec0742989',
-      fullName: 'meni',
-      email: 'meni@meni.com',
-      password: 'xd',
-    },
-  ];
+  constructor(
+    @InjectRepository(UsersRepository)
+    private usersRepository: UsersRepository,
+    @InjectRepository(ShoppingCartRepository)
+    private shoppingCartRepository: ShoppingCartRepository,
+    private jwtService: JwtService,
+  ) {}
 
-  getUsers() {
-    return this.users;
+  getUsers(filterDto: GetUserFilterDto): Promise<User[]> {
+    return this.usersRepository.getUsers(filterDto);
   }
 
-  getUsersWithFilter(filterDto: GetUserFilterDto) {
-    const { fullName, email } = filterDto;
-
-    //temp array
-    let users = this.getUsers();
-
-    if (fullName) {
-      users = users.filter((u) => u.fullName !== fullName);
-    }
-    if (email) {
-      users = users.filter((u) => u.email !== email);
-    }
-
-    return users;
-  }
-
-  createUser(createUserDto: CreateUserDto): User {
-    const { fullName, password, email } = createUserDto;
-    const user: User = {
-      id: uuid(),
-      fullName,
-      email,
-      password,
-    };
-    this.users.push(user);
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
+    const user = await this.usersRepository.createUser(createUserDto);
+    await this.shoppingCartRepository.createCartForUser(user);
     return user;
   }
 
-  getUserById(id: string): User {
-    const reqUser = this.users.find((user) => user.id === id);
-
-    if (!reqUser) {
+  async getUserById(id: string): Promise<User> {
+    const foundUser = await this.usersRepository.findOne(id);
+    if (!foundUser) {
       throw new NotFoundException();
     }
-
-    return reqUser;
+    return foundUser;
   }
 
-  deleteUserById(id: string): void {
-    const found = this.getUserById(id);
-    this.users.filter((user) => user.id !== found.id);
+  async deleteUser(id: string): Promise<void> {
+    const result = await this.usersRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException();
+    }
     return;
+  }
+  async updateUser(id: string, fullName: string): Promise<User> {
+    const user = await this.getUserById(id);
+    user.fullName = fullName;
+    await this.usersRepository.save(user);
+    return user;
+  }
+
+  async signIn(signInDto: SignInDto): Promise<{ accessToken: string }> {
+    const { email, password } = signInDto;
+    const user = await this.usersRepository.findOne({ email });
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const payload: JwtPayload = { email };
+      const accessToken = await this.jwtService.sign(payload);
+      return { accessToken };
+    } else {
+      throw new UnauthorizedException('Email or password are incorrect');
+    }
   }
 }

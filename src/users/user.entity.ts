@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { ShoppingCart } from './../shopping-cart/shopping-cart.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
 
 @Entity()
 export class User {
@@ -8,9 +9,14 @@ export class User {
   @Column()
   fullName: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()
   password: string;
+
+  @OneToOne((_type) => ShoppingCart, (shoppingCart) => shoppingCart.user, {
+    eager: true,
+  })
+  shoppingCart: ShoppingCart;
 }

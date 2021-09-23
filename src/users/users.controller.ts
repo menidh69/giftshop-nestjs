@@ -1,6 +1,7 @@
+import { SignInDto } from './dto/sign-in-creds.dto';
+import { User } from './user.entity';
 import { GetUserFilterDto } from './dto/get-user-filter.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './user.model';
 import { UsersService } from './users.service';
 import {
   Body,
@@ -8,36 +9,48 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  getUsers(@Query() filterDto: GetUserFilterDto): User[] {
-    //if we have filter, call getUsersWithFilter
-    if (Object.keys(filterDto).length) {
-      return this.usersService.getUsersWithFilter(filterDto);
-    } else {
-      return this.usersService.getUsers();
-    }
+  @UseGuards(AuthGuard())
+  getUsers(@Query() filterDto: GetUserFilterDto): Promise<User[]> {
+    return this.usersService.getUsers(filterDto);
   }
 
   @Post()
-  createUser(@Body() createUserDto: CreateUserDto): User {
+  createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.usersService.createUser(createUserDto);
   }
 
   @Get(':id')
-  getUserById(@Param('id') id: string): User {
+  getUserById(@Param('id') id: string): Promise<User> {
     return this.usersService.getUserById(id);
   }
 
   @Delete(':id')
-  deleteUserById(@Param('id') id: string): void {
-    return this.usersService.deleteUserById(id);
+  deleteUserById(@Param('id') id: string): Promise<void> {
+    return this.usersService.deleteUser(id);
+  }
+
+  @Patch(':id')
+  updateUserById(
+    @Param('id') id: string,
+    @Body('fullName') fullName: string,
+  ): Promise<User> {
+    return this.usersService.updateUser(id, fullName);
+  }
+
+  @Post('/signIn')
+  signIn(@Body() signInDto: SignInDto): Promise<{ accessToken: string }> {
+    return this.usersService.signIn(signInDto);
   }
 }
