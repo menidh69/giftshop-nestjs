@@ -1,6 +1,7 @@
+import { UpdateProductDto } from './dto/update-product.dto';
 import { CreatProductDto } from './dto/create-product.dto';
 import { ProductRepository } from './products.repository';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './product.entity';
 
@@ -27,7 +28,11 @@ export class ProductsService {
     return newProduct;
   }
 
-  async deleteProduct() {
+  async deleteProduct(id: string): Promise<void> {
+    const deleted = await this.productsRepository.delete(id);
+    if (deleted.affected === 0) {
+      throw new NotFoundException();
+    }
     return;
   }
 
@@ -35,7 +40,19 @@ export class ProductsService {
     return;
   }
 
-  async updateProduct() {
-    return;
+  async updateProduct(updateProductDto: UpdateProductDto) {
+    const { id } = updateProductDto;
+    const data = Object.keys({ ...updateProductDto }).filter(
+      (key) => key !== 'id',
+    );
+    const found = await this.productsRepository.findOne(id);
+    if (!found) {
+      throw new NotFoundException();
+    }
+    data.forEach((key) => {
+      found[key] = updateProductDto[key];
+    });
+    this.productsRepository.save(found);
+    return found;
   }
 }

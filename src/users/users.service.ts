@@ -1,3 +1,4 @@
+import { SignInResponseDto } from './dto/sign-in-response.dto';
 import { ShoppingCartRepository } from './../shopping-cart/shopping-cart.repository';
 import { JwtPayload } from './jwt-payload.interface';
 import { SignInDto } from './dto/sign-in-creds.dto';
@@ -44,6 +45,8 @@ export class UsersService {
   }
 
   async deleteUser(id: string): Promise<void> {
+    const { shoppingCart } = await this.usersRepository.findOne(id);
+    await this.shoppingCartRepository.delete(shoppingCart.id);
     const result = await this.usersRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException();
@@ -57,13 +60,15 @@ export class UsersService {
     return user;
   }
 
-  async signIn(signInDto: SignInDto): Promise<{ accessToken: string }> {
+  async signIn(signInDto: SignInDto): Promise<any> {
     const { email, password } = signInDto;
     const user = await this.usersRepository.findOne({ email });
     if (user && (await bcrypt.compare(password, user.password))) {
       const payload: JwtPayload = { email };
       const accessToken = await this.jwtService.sign(payload);
-      return { accessToken };
+      const userResponse = { ...user };
+      delete userResponse.password;
+      return userResponse;
     } else {
       throw new UnauthorizedException('Email or password are incorrect');
     }

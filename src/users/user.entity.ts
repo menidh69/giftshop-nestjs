@@ -15,6 +15,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ default: false })
+  admin: boolean;
+
   @OneToOne((_type) => ShoppingCart, (shoppingCart) => shoppingCart.user, {
     eager: true,
   })

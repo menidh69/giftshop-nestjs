@@ -14,7 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const { fullName, password, email } = createUserDto;
+    const { fullName, password, email, admin } = createUserDto;
     //hash
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -23,6 +23,7 @@ export class UsersRepository extends Repository<User> {
       fullName,
       password: hashedPassword,
       email,
+      admin,
     });
     try {
       await this.save(createdUser);

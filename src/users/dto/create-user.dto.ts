@@ -1,5 +1,6 @@
 import {
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -21,4 +22,6 @@ export class CreateUserDto {
     message: 'Password is too weak',
   })
   password: string;
+
+  admin?: boolean;
 }

@@ -36,7 +36,7 @@ export class UsersController {
     return this.usersService.getUserById(id);
   }
 
-  @Delete(':id')
+  @Delete('/:id')
   deleteUserById(@Param('id') id: string): Promise<void> {
     return this.usersService.deleteUser(id);
   }
@@ -50,7 +50,7 @@ export class UsersController {
   }
 
   @Post('/signIn')
-  signIn(@Body() signInDto: SignInDto): Promise<{ accessToken: string }> {
+  signIn(@Body() signInDto: SignInDto): Promise<any> {
     return this.usersService.signIn(signInDto);
   }
 }
