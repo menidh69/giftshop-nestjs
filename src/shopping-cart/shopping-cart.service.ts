@@ -1,3 +1,4 @@
+import { User } from './../users/user.entity';
 import { ShoppingCart } from './shopping-cart.entity';
 import { UsersRepository } from './../users/users.repository';
 import { AddToCartDto } from './dto/add-to-cart.dto';
@@ -6,6 +7,7 @@ import { CartProductRepository } from './cart-product.repository';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductRepository } from 'src/products/products.repository';
+import { NODATA } from 'dns';
 
 @Injectable()
 export class ShoppingCartService {
@@ -27,6 +29,15 @@ export class ShoppingCartService {
     if (!shoppingCart || !product) {
       throw new NotFoundException();
     }
+    const existingItem = await this.cartProductRepository.findOne({
+      where: { product: product.id },
+    });
+    console.log(existingItem);
+    if (existingItem) {
+      existingItem.quantity += 1;
+      this.cartProductRepository.save(existingItem);
+      return;
+    }
     const addedItem = this.cartProductRepository.create({
       shoppingCart,
       product,
@@ -34,6 +45,29 @@ export class ShoppingCartService {
     await this.cartProductRepository.save(addedItem);
 
     return;
+  }
+
+  async removeFromCart(productid: string, user: User): Promise<void> {
+    const { id } = user;
+    const { shoppingCart } = await this.usersRepositry.findOne(id);
+    const product = await this.productRepository.findOne(productid);
+    if (!shoppingCart || !product) {
+      throw new NotFoundException();
+    }
+    const existingItem = await this.cartProductRepository.findOne({
+      where: { product: product.id },
+    });
+    console.log(existingItem);
+    if (existingItem.quantity <= 1) {
+      await this.cartProductRepository.delete(existingItem);
+      return;
+    } else if (!existingItem) {
+      throw new NotFoundException();
+    } else {
+      existingItem.quantity -= 1;
+      this.cartProductRepository.save(existingItem);
+      return;
+    }
   }
 
   async getShoppingCart(id: string): Promise<ShoppingCart> {

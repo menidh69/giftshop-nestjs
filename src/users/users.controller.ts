@@ -1,3 +1,4 @@
+import { ShoppingCart } from './../shopping-cart/shopping-cart.entity';
 import { SignInDto } from './dto/sign-in-creds.dto';
 import { User } from './user.entity';
 import { GetUserFilterDto } from './dto/get-user-filter.dto';
@@ -52,5 +53,10 @@ export class UsersController {
   @Post('/signIn')
   signIn(@Body() signInDto: SignInDto): Promise<any> {
     return this.usersService.signIn(signInDto);
+  }
+
+  @Get(':id/cart')
+  getUserCartByiD(@Param('id') id: string): Promise<ShoppingCart> {
+    return this.usersService.getCart(id);
   }
 }

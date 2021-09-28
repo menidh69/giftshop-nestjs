@@ -1,12 +1,14 @@
 import { Product } from './../products/product.entity';
 import { ShoppingCart } from './shopping-cart.entity';
 import {
+  Column,
   Entity,
   JoinColumn,
   JoinTable,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { LargeNumberLike } from 'crypto';
 
 @Entity()
 export class CartProduct {
@@ -28,4 +30,7 @@ export class CartProduct {
   })
   @JoinColumn()
   product: Product;
+
+  @Column({ default: 1 })
+  quantity: number;
 }

@@ -25,4 +25,12 @@ export class ShoppingCartController {
     const dto: AddToCartDto = { productId, userId: user.id };
     return this.shoppingCartService.addToCart(dto);
   }
+
+  @Post('/remove')
+  removeFromCart(
+    @Body('productId') productId: string,
+    @GetUser() user: User,
+  ): Promise<void> {
+    return this.shoppingCartService.removeFromCart(productId, user);
+  }
 }

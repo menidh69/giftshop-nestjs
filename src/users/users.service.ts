@@ -30,6 +30,14 @@ export class UsersService {
     return this.usersRepository.getUsers(filterDto);
   }
 
+  async getCart(id: string) {
+    const user = await this.getUserById(id);
+    const cart = await this.shoppingCartRepository.findOne({
+      where: { user: user.id },
+    });
+    return cart;
+  }
+
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const user = await this.usersRepository.createUser(createUserDto);
     await this.shoppingCartRepository.createCartForUser(user);
@@ -66,7 +74,7 @@ export class UsersService {
     if (user && (await bcrypt.compare(password, user.password))) {
       const payload: JwtPayload = { email };
       const accessToken = await this.jwtService.sign(payload);
-      const userResponse = { ...user };
+      const userResponse = { ...user, accessToken };
       delete userResponse.password;
       return userResponse;
     } else {
