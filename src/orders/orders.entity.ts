@@ -1,13 +1,14 @@
+import { CartProduct } from './../shopping-cart/cart-products.entity';
 import { Product } from 'src/products/product.entity';
 import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Order {
@@ -20,8 +21,11 @@ export class Order {
   @Column()
   amount: number;
 
-  @Column()
-  products: string[];
+  @OneToMany((_type) => Product, (product) => product.orderProducts, {
+    eager: true,
+  })
+  @JoinColumn()
+  products: Product[];
 
   @Column({ default: false })
   fullfilled: boolean;

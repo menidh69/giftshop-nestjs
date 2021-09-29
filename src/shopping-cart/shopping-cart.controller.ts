@@ -22,7 +22,8 @@ export class ShoppingCartController {
     @Body('productId') productId: string,
     @GetUser() user: User,
   ): Promise<void> {
-    const dto: AddToCartDto = { productId, userId: user.id };
+    const dto: AddToCartDto = { productId: productId, userId: user.id };
+    console.log(productId);
     return this.shoppingCartService.addToCart(dto);
   }
 
@@ -31,6 +32,7 @@ export class ShoppingCartController {
     @Body('productId') productId: string,
     @GetUser() user: User,
   ): Promise<void> {
+    console.log(productId);
     return this.shoppingCartService.removeFromCart(productId, user);
   }
 }

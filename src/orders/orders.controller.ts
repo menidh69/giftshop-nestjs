@@ -1,10 +1,22 @@
+import { User } from './../users/user.entity';
 import { GetOrdersDto } from './dto/get-orders.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrdersService } from './orders.service';
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { Order } from './orders.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/users/get-user.decorator';
 
 @Controller('orders')
+@UseGuards(AuthGuard())
 export class OrdersController {
   constructor(private orderService: OrdersService) {}
 
@@ -19,8 +31,8 @@ export class OrdersController {
   }
 
   @Post()
-  createNewOrder(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.createNewOrder(createOrderDto);
+  createNewOrder(@GetUser() user: User) {
+    return this.orderService.createNewOrder(user);
   }
 
   @Post('/:id')

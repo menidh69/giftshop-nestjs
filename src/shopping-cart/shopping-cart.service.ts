@@ -24,6 +24,7 @@ export class ShoppingCartService {
 
   async addToCart(addToCartDto: AddToCartDto): Promise<void> {
     const { userId, productId } = addToCartDto;
+    console.log(productId);
     const { shoppingCart } = await this.usersRepositry.findOne(userId);
     const product = await this.productRepository.findOne(productId);
     if (!shoppingCart || !product) {
@@ -32,6 +33,7 @@ export class ShoppingCartService {
     const existingItem = await this.cartProductRepository.findOne({
       where: { product: product.id },
     });
+    console.log(product.id);
     console.log(existingItem);
     if (existingItem) {
       existingItem.quantity += 1;
@@ -47,17 +49,15 @@ export class ShoppingCartService {
     return;
   }
 
-  async removeFromCart(productid: string, user: User): Promise<void> {
+  async removeFromCart(cartItemId: string, user: User): Promise<void> {
     const { id } = user;
     const { shoppingCart } = await this.usersRepositry.findOne(id);
-    const product = await this.productRepository.findOne(productid);
-    if (!shoppingCart || !product) {
+    const existingItem = await this.cartProductRepository.findOne(cartItemId);
+    if (!shoppingCart || !cartItemId) {
+      console.log('not found');
       throw new NotFoundException();
     }
-    const existingItem = await this.cartProductRepository.findOne({
-      where: { product: product.id },
-    });
-    console.log(existingItem);
+
     if (existingItem.quantity <= 1) {
       await this.cartProductRepository.delete(existingItem);
       return;

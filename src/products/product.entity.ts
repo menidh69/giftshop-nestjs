@@ -1,5 +1,13 @@
+import { OrderProduct } from './../orders/orderProduct.entity';
+import { Order } from './../orders/orders.entity';
 import { CartProduct } from './../shopping-cart/cart-products.entity';
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 
 @Entity()
 export class Product {
@@ -19,4 +27,9 @@ export class Product {
     eager: false,
   })
   cartProducts: CartProduct[];
+
+  @OneToMany((_type) => OrderProduct, (orderProduct) => orderProduct.product, {
+    eager: false,
+  })
+  orderProducts: OrderProduct[];
 }
